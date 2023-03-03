@@ -110,7 +110,8 @@ class MainThread extends AgencyThread{
     String file = "config.txt";
     
     //Constructor
-    public MainThread(String name, int days, int numAgencies, int maxCustomers, ArrayList<Tour> tour, String tName, CyclicBarrier barrier){
+    public MainThread(String name, int days, int numAgencies, int maxCustomers, 
+            ArrayList<Tour> tour, String tName, CyclicBarrier barrier){
         super(name, days, numAgencies, maxCustomers, tour, tName, barrier);
     }
 
@@ -274,8 +275,8 @@ class MainThread extends AgencyThread{
             
             //Printing out agencies and their tours
             String name = agencyArrayList.get(i).getTourName();
-            System.out.printf("(%s, %s%-5s   ", agencyArrayList.get(i).getAgencyName(),
-                    name, ")");
+            System.out.printf("(%s, %s%-5s   ", 
+                    agencyArrayList.get(i).getAgencyName(), name, ")");
         }
         
         
