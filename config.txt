@@ -1,0 +1,10 @@
+6
+20
+2
+Tour_1  20
+Tour_2  20
+4
+Agency_1  Tour_1
+Agency_2  Tour_1
+Agency_3  Tour_2
+Agency_4  Tour_2
