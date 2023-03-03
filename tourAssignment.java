@@ -45,18 +45,12 @@ class Tour{
     }
 }
 
-//Agency class
-class AgencyThread extends Thread{
+//Agency class (extends Main Thread below)
+class AgencyThread extends MainThread{
     //Variables
-    //Note: Using protected sometimes because I need to update the MainThread subclass
     private String agency;
-    protected int currentCustomers = 0;
-    protected int simulationDays;
-    protected int maxCustomers;
-    protected ArrayList<Tour> tourGroup;
-    protected String tourName;
-    protected int numAgencies;
-    protected CyclicBarrier pauseBarrier;
+    private String tourName;
+    
     
     //Constructor to fill in variables
     public AgencyThread(String name, int days, int numAgen, 
@@ -69,7 +63,7 @@ class AgencyThread extends Thread{
         maxCustomers = maxCus;
         tourGroup = tour;
         pauseBarrier = barrier;
-        this.tourName = tName;
+        tourName = tName;
         //System.out.println(tourName);
     }
     
@@ -104,15 +98,22 @@ A: Because that is what the instructions says, not to mention in the exanple out
 it clearly states that all output lines are labeled with thread name using:
 (Thread.currentThread().getName())
 */
-class MainThread extends AgencyThread{
+class MainThread extends Thread{
     //Variables
-    String path = "src/main/java/Project2_6480929/";
-    String file = "config.txt";
+    private String path = "src/main/java/Project2_6480929/";
+    private String file = "config.txt";
+    
+    //Variables that will be shared to AgencyThread subclass
+    protected int currentCustomers = 0;
+    protected int simulationDays;
+    protected int maxCustomers;
+    protected ArrayList<Tour> tourGroup;    
+    protected int numAgencies;
+    protected CyclicBarrier pauseBarrier;
     
     //Constructor
-    public MainThread(String name, int days, int numAgencies, int maxCustomers, 
-            ArrayList<Tour> tour, String tName, CyclicBarrier barrier){
-        super(name, days, numAgencies, maxCustomers, tour, tName, barrier);
+    public MainThread(String name){
+        super(name);
     }
 
     //Getting info from config.txt
@@ -230,9 +231,10 @@ class MainThread extends AgencyThread{
     public void run() {
         //Make the ArrayList for agency
         ArrayList<AgencyThread> agencyArrayList = new ArrayList<AgencyThread>();
+        ArrayList<Tour> tourArrayList = new ArrayList<Tour>();
         
         //Read config.txt file
-        file = scanInfo(path, file, tourGroup, agencyArrayList);
+        file = scanInfo(path, file, tourArrayList, agencyArrayList);
         System.out.printf("\nThread %-6s>> %s%s%s\n\n",Thread.currentThread().getName(),
                 "read parameters from file ", path, file);
         
@@ -290,15 +292,8 @@ class MainThread extends AgencyThread{
 
 public class tourAssignment {
     public static void main(String[] args) {
-        //Start the main thread
-        
-        //Make dummy ArrayList and CyclicBarrier (will get replaced in MainThread anyways
-        ArrayList<Tour> dummyTourArrayList = new ArrayList<Tour>();
-        CyclicBarrier dummyCyclicBarrier = new CyclicBarrier(1);
-        
         //Making the main thread
-        MainThread M1 = new MainThread("main", 0, 0, 0, 
-                dummyTourArrayList, "dummy", dummyCyclicBarrier);
+        MainThread M1 = new MainThread("main");
         
         //Starting the thread;
         M1.start();
