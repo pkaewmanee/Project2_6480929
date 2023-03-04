@@ -6,17 +6,15 @@ package Project2_6480929;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Scanner;
-import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CyclicBarrier;
+import java.util.*;
+import java.util.concurrent.*;
 
 //Tour class
 class Tour{
     //Variables
     private String name;
     private int totalCapacity;
-    private int currentCapacity;
+    private int currentCapacity = 0;
     
     //Constructor
     public Tour(String name, int capacity){
@@ -25,13 +23,23 @@ class Tour{
     }
     
     //Removing capacity from tour
-    public synchronized void removeCapacity(int numPeople){
-        currentCapacity = currentCapacity- numPeople;
+    public synchronized int removeCapacity(int numPeople){
+        //If current capcacity can handle all new customers, return all of numPeople;
+        if (currentCapacity - numPeople >= 0){
+            currentCapacity = currentCapacity - numPeople;            
+            return numPeople;
+        } else {
+            //If cannot handle all new customers, set currentCapacity to 0 and
+            //return leftover customers
+            int leftovers = currentCapacity;
+            currentCapacity = 0;
+            return leftovers;
+        }       
     }
     
     //Reseting current capacity to total capacity
     public void resetCapacity(){
-        currentCapacity = totalCapacity;
+        this.currentCapacity = this.totalCapacity;
     }
     
     //Return tour name (For adding them into agenecy)
@@ -50,6 +58,10 @@ class AgencyThread extends MainThread{
     //Variables
     private String agency;
     private String tourName;
+    private Tour assignedTourGroup;
+    private int currentCustomers = 0;
+    private int totalArrival = 0;
+    private int totalSuccess = 0;
     
     
     //Constructor to fill in variables
@@ -63,33 +75,77 @@ class AgencyThread extends MainThread{
         maxCustomers = maxCus;
         tourGroup = tour;
         pauseBarrier = barrier;
-        tourName = tName;
-        //System.out.println(tourName);
+        tourName = tName; 
+        this.setTour();
     }
     
-    //Return agency name and tour group
+    //Return agency name
     public String getAgencyName(){
         return agency;
     }
     
+    //Return tourName
     public String getTourName(){
         return tourName;
     }
     
-    @Override
-    public void run(){
-        
+    //Find the correct tour
+    public void setTour(){
+        for (int j = 0; j < tourGroup.size(); j++){
+            String temp = tourGroup.get(j).getName();
+            if (tourName.compareTo(temp) == 0){
+                assignedTourGroup = tourGroup.get(j);
+                
+            }
+        }
     }
     
-    /*
-    //Find the right tour group that is assigned to the agency
-    for (int j = 0; j < numTours; j++){
-                        if (agencyTourGroup == tour.get(j).getName()){
+    //Return total arrival
+    public int getTotalArrival(){
+        return totalArrival;
+    }
     
-    */
+    //Return total success
+    public int getTotalSuccess(){
+        return totalSuccess;
+    }
+    
+    //What the agency thread will be running
+    @Override
+    public void run(){         
+        for (int i = 0; i < simulationDays; i++){
+            //Wait for main to print out line seperation and day number
+            try{ pauseBarrier.await(); } catch (Exception e) { }
+            
+            //Geting random amount of customers
+            Random rand = new Random();
+            int newCustomers = rand.nextInt(maxCustomers);
+            currentCustomers = currentCustomers + newCustomers;
+            System.out.printf("\nThread %-9s >> new arrival = %-15dremainging customers = %2d", 
+                        Thread.currentThread().getName(), newCustomers,currentCustomers);
+            
+            //Save total arrival
+            totalArrival = totalArrival + newCustomers;
+
+            //Wait for every agency thread to get all new arrivals
+            try{ pauseBarrier.await(); } catch (Exception e) { }
+
+            //Put customers onto tours
+            int customersServiced = assignedTourGroup.removeCapacity(currentCustomers);
+            currentCustomers = currentCustomers - customersServiced;
+            System.out.printf("\nThread %-9s >> puts %2d customers on %s",
+                    Thread.currentThread().getName(), customersServiced, tourName);
+            
+            //Save total customers serviced
+            totalSuccess = totalSuccess + customersServiced;
+
+            //Wait for every thread to put customers into tour
+            try{ pauseBarrier.await(); } catch (Exception e) { }
+        }
+    }
 }
 
-//Main class (for main thread)
+//Main thread
 /*
 Why is the scanning of info in the main thread rather than just doing it at the start
 and then start the main thread?
@@ -97,14 +153,14 @@ and then start the main thread?
 A: Because that is what the instructions says, not to mention in the exanple output
 it clearly states that all output lines are labeled with thread name using:
 (Thread.currentThread().getName())
+This is why we run the scanning inside the thread
 */
 class MainThread extends Thread{
     //Variables
     private String path = "src/main/java/Project2_6480929/";
-    private String file = "config.txt";
+    private String startFile = "configg.txt";
     
-    //Variables that will be shared to AgencyThread subclass
-    protected int currentCustomers = 0;
+    //Variables that will be shared to AgencyThread subclass   
     protected int simulationDays;
     protected int maxCustomers;
     protected ArrayList<Tour> tourGroup;    
@@ -117,7 +173,7 @@ class MainThread extends Thread{
     }
 
     //Getting info from config.txt
-    public String scanInfo(String path, String file, 
+    public void scanInfo(String path, String file, 
             ArrayList<Tour> tour, ArrayList<AgencyThread> agency){
         //Variables to temperary store variables to be added into constructors
         //Tour variables
@@ -196,8 +252,8 @@ class MainThread extends Thread{
                 if (numAgen == 0){
                     numAgen = Integer.parseInt(line);
                     
-                    //Setting new barrier
-                    barrier = new CyclicBarrier(numAgen);
+                    //Setting new barrier (+1 because we also have main thread)
+                    barrier = new CyclicBarrier(numAgen + 1);
                     this.pauseBarrier = barrier;
                     this.numAgencies = numAgen;
                     continue;
@@ -210,20 +266,20 @@ class MainThread extends Thread{
                 agency.add(new AgencyThread(agencyName,simDays,numAgen,
                maxArrival, tour, agencyTourGroup, barrier));
             }
+            System.out.printf("Thread %-9s >> %s%s%s\n\n",Thread.currentThread().getName(),
+                "read parameters from file ", path, file);
             scan.close();
-
+                        
         } catch(FileNotFoundException e) {
             //Bog standard exception handling
-            System.err.println(e.toString());
+            System.out.printf("\nThread %-9s >> ", Thread.currentThread().getName());
+            System.err.printf(e.toString());
             Scanner getFile = new Scanner(System.in);
-            System.out.printf("Thread%-6s>> enter config file = \n", 
+            System.out.printf("\nThread %-9s >> enter config file = \n", 
                     Thread.currentThread().getName());
             String newfile = getFile.nextLine();
             scanInfo(path, newfile, tour, agency);
-        }
-        
-        //Return updated file (If file was not found)
-        return file;
+        }      
     }
     
     //What the main thread will be doing
@@ -234,26 +290,24 @@ class MainThread extends Thread{
         ArrayList<Tour> tourArrayList = new ArrayList<Tour>();
         
         //Read config.txt file
-        file = scanInfo(path, file, tourArrayList, agencyArrayList);
-        System.out.printf("\nThread %-6s>> %s%s%s\n\n",Thread.currentThread().getName(),
-                "read parameters from file ", path, file);
+        scanInfo(path, startFile, tourArrayList, agencyArrayList);
         
         //Print out config.txt file
 
-        System.out.printf("Thread %-6s>> %-25s = %d\n",Thread.currentThread().getName(),
+        System.out.printf("Thread %-9s >> %-25s = %d\n",Thread.currentThread().getName(),
                 "days of simulation", simulationDays);
-        System.out.printf("Thread %-6s>> %-25s = %d\n",Thread.currentThread().getName(),
+        System.out.printf("Thread %-9s >> %-25s = %d\n",Thread.currentThread().getName(),
                 "maximum daily arrival", maxCustomers);
         
         //Printing out all the tours
-        System.out.printf("Thread %-6s>> %-25s = ",Thread.currentThread().getName(),
+        System.out.printf("Thread %-9s >> %-25s = ",Thread.currentThread().getName(),
                 "(tour, daily capacity)");
         for (int i = 0; i < tourGroup.size(); i++){
             //Send to new line if current line too large
             int j = 3;
             if (i == j){
                 System.out.printf("\n");
-                System.out.printf("%44s", "");
+                System.out.printf("%48s", "");
                 j = j + 4;
             }
             
@@ -263,7 +317,7 @@ class MainThread extends Thread{
         }
         
         //Printing out all the agencies
-        System.out.printf("\nThread %-6s>> %-25s = ",Thread.currentThread().getName(),
+        System.out.printf("\nThread %-9s >> %-25s = ",Thread.currentThread().getName(),
                 "(thread, tour)");
         
         for (int i = 0; i < agencyArrayList.size(); i++){
@@ -271,7 +325,7 @@ class MainThread extends Thread{
             int j = 3;
             if (i == j){
                 System.out.printf("\n");
-                System.out.printf("%44s", "");
+                System.out.printf("%48s", "");
                 j = j + 4;
             }
             
@@ -281,12 +335,47 @@ class MainThread extends Thread{
                     agencyArrayList.get(i).getAgencyName(), name, ")");
         }
         
+        //Extra formating
+        System.out.println();
         
-        //Start simulation
-        for (int i = 0; i < simulationDays; i++){
-            
+        
+        //Start threads
+        for (AgencyThread a : agencyArrayList){                
+                    a.start();
         }
+                
+        for (int i = 0; i < simulationDays; i++){
+            //Reset the current capacity of all tours as its the next day
+            for (Tour t :tourGroup){
+                t.resetCapacity();
+            }
+            
+            //Formating
+            System.out.printf("\nThread %-9s >> ",Thread.currentThread().getName());
+            System.out.printf("-".repeat(80));
+            System.out.printf("\nThread %-9s >> Day %-2d",
+                    Thread.currentThread().getName(), i + 1);
+            
+            //Let the other threads start arrivals
+            try{ pauseBarrier.await(); } catch (Exception e) { }
+            
+            //Used so that other threads start putting customers onto tours
+            try{ pauseBarrier.await(); } catch (Exception e) { }
+            
+            //Wait for the other threads to finsih putting customers onto tours
+            try{ pauseBarrier.await(); } catch (Exception e) { }           
+        }   
         
+        //Print out stats
+        System.out.printf("\n\nThread %-9s >> ",Thread.currentThread().getName());
+        System.out.printf("-".repeat(80));
+        System.out.printf("\nThread %-9s >> Agency summary",
+                Thread.currentThread().getName());
+        for (AgencyThread a : agencyArrayList){   
+            System.out.printf("\nThread %-9s >> %-15stotal arrival = %-6dtotal success = %d",
+                    Thread.currentThread().getName(), a.getAgencyName(), 
+                    a.getTotalArrival(), a.getTotalSuccess());
+        }
     }
 }
 
