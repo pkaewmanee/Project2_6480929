@@ -357,13 +357,13 @@ class MainThread extends Thread{
                     Thread.currentThread().getName(), i + 1);
             
             //Let the other threads start arrivals
-            try{ pauseBarrier.await(); } catch (Exception e) { }
+            try{ pauseBarrier.await(); } catch (InterruptedException | BrokenBarrierException e) { }
             
             //Used so that other threads start putting customers onto tours
-            try{ pauseBarrier.await(); } catch (Exception e) { }
+            try{ pauseBarrier.await(); } catch (InterruptedException | BrokenBarrierException e) { }
             
             //Wait for the other threads to finsih putting customers onto tours
-            try{ pauseBarrier.await(); } catch (Exception e) { }           
+            try{ pauseBarrier.await(); } catch (InterruptedException | BrokenBarrierException e) { }           
         }   
         
         //Print out stats
