@@ -312,7 +312,7 @@ class MainThread extends Thread{
             }
             
             //Printing out tours
-            System.out.printf("(%s,%4d)    ", tourGroup.get(i).getName(),
+            System.out.printf("(%s,%4d)            ", tourGroup.get(i).getName(),
                     tourGroup.get(i).getCapcity());
         }
         
