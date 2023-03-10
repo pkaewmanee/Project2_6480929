@@ -115,7 +115,7 @@ class AgencyThread extends MainThread{
     public void run(){         
         for (int i = 0; i < simulationDays; i++){
             //Wait for main to print out line seperation and day number
-            try{ pauseBarrier.await(); } catch (Exception e) { }
+            try{ pauseBarrier.await(); } catch (InterruptedException | BrokenBarrierException e) { }
             
             //Geting random amount of customers
             Random rand = new Random();
@@ -128,7 +128,7 @@ class AgencyThread extends MainThread{
             totalArrival = totalArrival + newCustomers;
 
             //Wait for every agency thread to get all new arrivals
-            try{ pauseBarrier.await(); } catch (Exception e) { }
+            try{ pauseBarrier.await(); } catch (InterruptedException | BrokenBarrierException e) { }
 
             //Put customers onto tours
             int customersServiced = assignedTourGroup.removeCapacity(currentCustomers);
@@ -140,7 +140,7 @@ class AgencyThread extends MainThread{
             totalSuccess = totalSuccess + customersServiced;
 
             //Wait for every thread to put customers into tour
-            try{ pauseBarrier.await(); } catch (Exception e) { }
+            try{ pauseBarrier.await(); } catch (InterruptedException | BrokenBarrierException e) { }
         }
     }
 }
