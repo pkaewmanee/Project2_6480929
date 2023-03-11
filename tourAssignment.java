@@ -117,32 +117,44 @@ class AgencyThread extends MainThread{
     public void run(){         
         for (int i = 0; i < simulationDays; i++){
             //Wait for main to print out line seperation and day number
-            try{ pauseBarrier.await(); } catch (InterruptedException | BrokenBarrierException e) { }
+            try{
+                pauseBarrier.await();
+            } catch (InterruptedException | BrokenBarrierException e) {
+                System.out.println(e);
+            }
             
             //Geting random amount of customers
             Random rand = new Random();
             int newCustomers = rand.nextInt(maxCustomers);
             currentCustomers = currentCustomers + newCustomers;
             System.out.printf("\nThread %-9s >> new arrival = %-15dremainging customers = %2d", 
-                        Thread.currentThread().getName(), newCustomers,currentCustomers);
+                              Thread.currentThread().getName(), newCustomers,currentCustomers);
             
             //Save total arrival
             totalArrival = totalArrival + newCustomers;
 
             //Wait for every agency thread to get all new arrivals
-            try{ pauseBarrier.await(); } catch (InterruptedException | BrokenBarrierException e) { }
+            try{
+                pauseBarrier.await();
+            } catch (InterruptedException | BrokenBarrierException e) {
+                System.out.println(e);
+            }
 
             //Put customers onto tours
             int customersServiced = assignedTourGroup.removeCapacity(currentCustomers);
             currentCustomers = currentCustomers - customersServiced;
             System.out.printf("\nThread %-9s >> puts %2d customers on %s",
-                    Thread.currentThread().getName(), customersServiced, tourName);
+                              Thread.currentThread().getName(), customersServiced, tourName);
             
             //Save total customers serviced
             totalSuccess = totalSuccess + customersServiced;
 
             //Wait for every thread to put customers into tour
-            try{ pauseBarrier.await(); } catch (InterruptedException | BrokenBarrierException e) { }
+            try{
+                pauseBarrier.await();
+            } catch (InterruptedException | BrokenBarrierException e) {
+                System.out.println(e);
+            }
         }
     }
 }
@@ -256,11 +268,10 @@ class MainThread extends Thread{
                 String [] buf = line.split("  ");
                 agencyName = buf[0];
                 agencyTourGroup = buf[1];
-                agency.add(new AgencyThread(agencyName,simDays,numAgen,
-               maxArrival, tour, agencyTourGroup, barrier));
+                agency.add(new AgencyThread(agencyName, simDays, numAgen, maxArrival, tour, agencyTourGroup, barrier));
             }
-            System.out.printf("Thread %-9s >> %s%s%s\n\n",Thread.currentThread().getName(),
-                "read parameters from file ", path, file);
+            System.out.printf("Thread %-9s >> %s%s%s\n\n",Thread.currentThread().getName(), 
+                              "read parameters from file ", path, file);
             scan.close();
                         
         } catch(FileNotFoundException e) {
@@ -269,7 +280,7 @@ class MainThread extends Thread{
             System.err.printf(e.toString());
             Scanner getFile = new Scanner(System.in);
             System.out.printf("\nThread %-9s >> enter config file = \n", 
-                    Thread.currentThread().getName());
+                              Thread.currentThread().getName());
             String newfile = getFile.nextLine();
             scanInfo(path, newfile, tour, agency);
         }      
@@ -288,13 +299,13 @@ class MainThread extends Thread{
         //Print out config.txt file
 
         System.out.printf("Thread %-9s >> %-25s = %d\n",Thread.currentThread().getName(),
-                "days of simulation", simulationDays);
+                          "days of simulation", simulationDays);
         System.out.printf("Thread %-9s >> %-25s = %d\n",Thread.currentThread().getName(),
-                "maximum daily arrival", maxCustomers);
+                          "maximum daily arrival", maxCustomers);
         
         //Printing out all the tours
         System.out.printf("Thread %-9s >> %-25s = ",Thread.currentThread().getName(),
-                "(tour, daily capacity)");
+                          "(tour, daily capacity)");
         for (int i = 0; i < tourGroup.size(); i++){
             //Send to new line if current line too large
             int j = 3;
@@ -306,12 +317,12 @@ class MainThread extends Thread{
             
             //Printing out tours
             System.out.printf("(%s,%4d)            ", tourGroup.get(i).getName(),
-                    tourGroup.get(i).getCapcity());
+                              tourGroup.get(i).getCapcity());
         }
         
         //Printing out all the agencies
         System.out.printf("\nThread %-9s >> %-25s = ",Thread.currentThread().getName(),
-                "(thread, tour)");
+                          "(thread, tour)");
         
         for (int i = 0; i < agencyArrayList.size(); i++){
             //Send to new line if current line too large
@@ -325,7 +336,7 @@ class MainThread extends Thread{
             //Printing out agencies and their tours
             String name = agencyArrayList.get(i).getTourName();
             System.out.printf("(%s, %s%-5s   ", 
-                    agencyArrayList.get(i).getAgencyName(), name, ")");
+                              agencyArrayList.get(i).getAgencyName(), name, ")");
         }
         
         //Extra formating
@@ -347,27 +358,39 @@ class MainThread extends Thread{
             System.out.printf("\nThread %-9s >> ",Thread.currentThread().getName());
             System.out.printf("-".repeat(80));
             System.out.printf("\nThread %-9s >> Day %-2d",
-                    Thread.currentThread().getName(), i + 1);
+                              Thread.currentThread().getName(), i + 1);
             
             //Let the other threads start arrivals
-            try{ pauseBarrier.await(); } catch (InterruptedException | BrokenBarrierException e) { }
+            try{
+                pauseBarrier.await();
+            } catch (InterruptedException | BrokenBarrierException e) {
+                System.out.println(e);
+            }
             
             //Used so that other threads start putting customers onto tours
-            try{ pauseBarrier.await(); } catch (InterruptedException | BrokenBarrierException e) { }
+            try{
+                pauseBarrier.await();
+            } catch (InterruptedException | BrokenBarrierException e) {
+                System.out.println(e);
+            }
             
             //Wait for the other threads to finsih putting customers onto tours
-            try{ pauseBarrier.await(); } catch (InterruptedException | BrokenBarrierException e) { }           
+            try{
+                pauseBarrier.await();
+            } catch (InterruptedException | BrokenBarrierException e) {
+                System.out.println(e);
+            }           
         }   
         
         //Print out stats
         System.out.printf("\n\nThread %-9s >> ",Thread.currentThread().getName());
         System.out.printf("-".repeat(80));
         System.out.printf("\nThread %-9s >> Agency summary",
-                Thread.currentThread().getName());
+                          Thread.currentThread().getName());
         for (AgencyThread a : agencyArrayList){   
             System.out.printf("\nThread %-9s >> %-15stotal arrival = %-6dtotal success = %d",
-                    Thread.currentThread().getName(), a.getAgencyName(), 
-                    a.getTotalArrival(), a.getTotalSuccess());
+                              Thread.currentThread().getName(), a.getAgencyName(), 
+                              a.getTotalArrival(), a.getTotalSuccess());
         }
     }
 }
