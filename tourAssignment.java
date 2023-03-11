@@ -68,8 +68,7 @@ class AgencyThread extends MainThread{
     
     
     //Constructor to fill in variables
-    public AgencyThread(String name, int days, int numAgen, 
-            int maxCus, ArrayList<Tour> tour, String tName, CyclicBarrier barrier){
+    public AgencyThread(String name, int days, int numAgen, int maxCus, ArrayList<Tour> tour, String tName, CyclicBarrier barrier){
         //Fill in arguements into variables
         super(name);
         agency = name;
