@@ -12,6 +12,16 @@ import java.io.FileNotFoundException;
 import java.util.*;
 import java.util.concurrent.*;
 
+public class Project2_6480929 {
+    public static void main(String[] args) {
+        //Making the main thread
+        MainThread M1 = new MainThread("main");
+        
+        //Starting the thread;
+        M1.start();
+    }
+}
+
 //Tour class
 class Tour{
     //Variables
@@ -392,15 +402,5 @@ class MainThread extends Thread{
                               Thread.currentThread().getName(), a.getAgencyName(), 
                               a.getTotalArrival(), a.getTotalSuccess());
         }
-    }
-}
-
-public class tourAssignment {
-    public static void main(String[] args) {
-        //Making the main thread
-        MainThread M1 = new MainThread("main");
-        
-        //Starting the thread;
-        M1.start();
     }
 }
