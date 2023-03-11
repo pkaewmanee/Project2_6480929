@@ -149,15 +149,6 @@ class AgencyThread extends MainThread{
 }
 
 //Main thread
-/*
-Why is the scanning of info in the main thread rather than just doing it at the start
-and then start the main thread?
-
-A: Because that is what the instructions says, not to mention in the exanple output
-it clearly states that all output lines are labeled with thread name using:
-(Thread.currentThread().getName())
-This is why we run the scanning inside the thread
-*/
 class MainThread extends Thread{
     //Variables
     private String path = "src/main/java/Project2_6480929/";
