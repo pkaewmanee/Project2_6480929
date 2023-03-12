@@ -5,14 +5,14 @@ Phakkhapon Kaewmanee    6480929
 Jawit Poopradit         6480087
 */
 
-package Project2_6480929;
+package Project2_6480279;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
 import java.util.concurrent.*;
 
-public class Project2_6480929 {
+public class Project2_6480279 {
     public static void main(String[] args) {
         //Making the main thread
         MainThread M1 = new MainThread("main");
@@ -25,8 +25,8 @@ public class Project2_6480929 {
 //Tour class
 class Tour{
     //Variables
-    private String name;
-    private int totalCapacity;
+    final private String name;
+    final private int totalCapacity;
     private int currentCapacity = 0;
     
     //Constructor
@@ -69,8 +69,8 @@ class Tour{
 //Agency class (extends Main Thread below)
 class AgencyThread extends MainThread{
     //Variables
-    private String agency;
-    private String tourName;
+    final private String agency;
+    final private String tourName;
     private Tour assignedTourGroup;
     private int currentCustomers = 0;
     private int totalArrival = 0;
@@ -172,8 +172,8 @@ class AgencyThread extends MainThread{
 //Main thread
 class MainThread extends Thread{
     //Variables
-    private String path = "src/main/java/Project2_6480929/";
-    private String startFile = "configg.txt";
+    final private String path = "src/main/java/Project2_6480279/";
+    final private String startFile = "configg.txt";
     
     //Variables that will be shared to AgencyThread subclass   
     protected int simulationDays;
